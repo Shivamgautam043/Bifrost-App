@@ -1,0 +1,89 @@
+import { getPostgresDatabaseManager } from "../../../submodules/submodule-database-manager-postgres/postgresDatabaseManager.server";
+import { Uuid } from "../../../submodules/submodule-database-manager-postgres/typeDefinitions";
+import { Result, okResult, errResult } from "../../../submodules/submodule-database-manager-postgres/utilities/errorHandling";
+import bcrypt from "bcrypt";
+import { generateUuid } from "../../../submodules/submodule-database-manager-postgres/utilities/utilities";
+
+export async function createUser({
+    fullName,
+    phone,
+    email,
+    password,
+}: {
+    fullName: string;
+    phone: string;
+    email: string;
+    password: string;
+}): Promise<Result<{ id: Uuid }>> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+    const passwordHash = await bcrypt.hash(password, 10);
+    const id = generateUuid() as Uuid;
+    const insertQuery = `
+    INSERT INTO users (id, full_name, email, phone, password_hash)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id;
+  `;
+
+    const insertResult = await db.execute(insertQuery, [
+        id,
+        fullName,
+        email,
+        phone,
+        passwordHash,
+    ]);
+
+    if (!insertResult.success) return insertResult;
+
+    return okResult({ id });
+}
+
+export async function verifyUser({
+    email,
+    password,
+}: {
+    email: string;
+    password: string;
+}): Promise<
+    Result<{
+        id: string;
+        full_name: string;
+        email: string;
+        phone: string;
+    }>
+> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+
+    const query = `
+    SELECT id, full_name, email, phone, password_hash
+    FROM users
+    WHERE email = $1
+  `;
+
+    const userResult = await db.execute(query, [email]);
+    if (!userResult.success) return userResult;
+
+    const rows = userResult.data.rows as any[];
+
+    if (rows.length === 0) {
+        return errResult(new Error("User not found"));
+    }
+
+    const user = rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+        return errResult(new Error("Invalid password"));
+    }
+    return okResult({
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+    });
+}
