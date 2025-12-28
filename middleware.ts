@@ -30,6 +30,5 @@ export function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         "/dashboard/:path*",
-        "/((?!api|_next|favicon.ico|login|signup|auth).*)",
     ],
 };
