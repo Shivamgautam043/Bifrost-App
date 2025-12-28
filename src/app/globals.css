@@ -5,6 +5,23 @@
   --foreground: #171717;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ds-background-200: #27272a;
+  }
+}
+
+
+:root {
+  --ds-background-200: #e4e4e7;
+  --ds-teal-500: #14b8a6;
+  --ds-blue-700: #1d4ed8;
+  --ds-purple-700: #6d28d9;
+  --ds-pink-700: #be185d;
+  --ds-amber-700: #b45309;
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,4 +40,44 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+@keyframes glow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.animate-glow {
+  animation: glow 6s ease-in-out infinite;
+}
+
+.animate-rainbow {
+  background: linear-gradient(90deg,
+    #ff0080, #ff8c00, #40e0d0, #8a2be2, #ff0080
+  );
+  animation: rainbow 8s linear infinite;
+  background-size: 400% 400%;
+}
+
+
+@keyframes northern-lights {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-33%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+
+@utility animate-northern-lights {
+  animation: northern-lights var(--duration) linear infinite;
 }
