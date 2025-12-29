@@ -20,7 +20,12 @@
   --ds-pink-700: #be185d;
   --ds-amber-700: #b45309;
 }
-
+  /* --ds-background-200: #e4e4e7;
+  --ds-teal-500: #006354;
+  --ds-blue-700: #006efe;
+  --ds-purple-700: #9440d5;
+  --ds-pink-700: #f12b82;
+  --ds-amber-700: #ffae00; */
 
 @theme inline {
   --color-background: var(--background);
