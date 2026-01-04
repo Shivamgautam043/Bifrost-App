@@ -1,12 +1,10 @@
 "use client";
-
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TextHoverEffect } from "../components/ui/text-hover-effect";
 
 export default function AuthForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-
   const mutation = useMutation({
     mutationFn: async (body: any) => {
       let endpoint = "/api/auth/login";
@@ -50,7 +48,10 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="max-w-sm mx-auto mt-10 h-screen">
+    <div className="max-w-full mx-auto mt-10 h-screen">
+      <div className="max-w-sm mx-auto">
+
+ 
       <h2 className="text-xl font-bold mb-4">
         {mode === "login" ? "Login" : "Sign Up"}
       </h2>
@@ -133,7 +134,7 @@ export default function AuthForm() {
             </button>
           </>
         )}
-      </p>
+      </p>     </div>
 
       <TextHoverEffect text="Bifrost" />
     </div>
