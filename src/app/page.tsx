@@ -26,7 +26,7 @@ export default async function Home() {
         {/* <p className="mt-4">
           <span className="font-semibold z-30">User ID:</span> {decoded.id}
         </p> */}
-        {/* <RainbowBackground /> */}
+        <RainbowBackground height={400}/>
         <TextHoverEffect text="Bifrost" />
       </div>
     </div>
