@@ -1,9 +1,9 @@
 "use client";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { InputFieldWithLabel, InputTextField } from "./ui/InputFields";
 import { useForm } from "@mantine/form";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { InputPasswordField, InputTextField } from "./ui/InputFields";
 
 export default function LoginForm() {
     const searchParams = useSearchParams();
@@ -130,7 +130,15 @@ export default function LoginForm() {
                     required
                 />
 
-                <InputTextField
+                {/* <InputTextField
+                    name="password"
+                    label="Password"
+                    placeholder="Enter Password"
+                    form={form}
+                    disabled={mutation.isPending}
+                    required
+                /> */}
+                <InputPasswordField
                     name="password"
                     label="Password"
                     placeholder="Enter Password"
@@ -146,7 +154,7 @@ export default function LoginForm() {
                 )}
 
                 <button
-                    className="bg-blue-600 text-white p-2 rounded disabled:opacity-60 flex justify-center"
+                    className={`bg-blue-600 text-white p-2 rounded disabled:opacity-60 flex justify-center ${mutation.isPending ? "cursor-progress opacity-75" : "cursor-pointer"}`}
                     disabled={mutation.isPending}
                 >
                     {mutation.isPending
