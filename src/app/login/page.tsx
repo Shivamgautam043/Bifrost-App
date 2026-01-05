@@ -3,7 +3,7 @@ import { TextHoverEffect } from "../components/ui/text-hover-effect";
 
 export default function Page() {
   return (
-    <div className="max-w-full mx-auto h-screen grid grid-cols-1 w-full place-items-center">
+    <div className="max-w-full mx-auto h-screen grid grid-cols-1 w-full place-items-center pt-24">
       <LoginForm/>
       <TextHoverEffect text="Bifrost" />
     </div>
