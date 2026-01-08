@@ -1,6 +1,7 @@
 "use client";
 
 import { logoutAction } from "@/lib/auth";
+import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
 export default function Header({
@@ -10,9 +11,9 @@ export default function Header({
 }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   async function handleLogout() {
-    await logoutAction(); 
+    await logoutAction();
   }
 
   useEffect(() => {
@@ -39,7 +40,8 @@ export default function Header({
           <span className="font-semibold text-lg">Bifrost</span>
         </div>
 
-        {user !== null && (
+        {user ? (
+          // LOGGED IN STATE
           <div className="relative" ref={dropdownRef}>
             {/* AVATAR BUTTON */}
             <button
@@ -56,19 +58,14 @@ export default function Header({
                   <p className="font-semibold text-black dark:text-white">
                     {user.name.charAt(0).toUpperCase() + user.name.slice(1)}
                   </p>
-
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {user.email}
                   </p>
                 </div>
-
                 <hr className="border-gray-200 dark:border-white/20" />
-
                 <button className="w-full text-left text-sm py-2 px-4 hover:bg-gray-100 dark:hover:bg-white/10 transition cursor-pointer">
                   Settings
                 </button>
-
-                {/* Using a form or button calling the async action works seamlessly */}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left text-sm py-2 px-4 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/20 transition cursor-pointer"
@@ -78,6 +75,30 @@ export default function Header({
               </div>
             )}
           </div>
+        ) : (
+          // LOGGED OUT STATE (LOGIN BUTTON)
+          <Link
+            href="/login"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+          >
+            {/* Simple Login Icon (SVG) */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" x2="3" y1="12" y2="12" />
+            </svg>
+            Login
+          </Link>
         )}
       </header>
 

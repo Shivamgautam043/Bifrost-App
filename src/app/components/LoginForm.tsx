@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { InputPasswordField, InputTextField } from "./ui/InputFields";
 import { loginAction, signupAction } from "@/lib/auth";
+import { toast } from "react-toastify";
+import { checkEmailAvailability } from "@/lib/backend/users";
 
 export default function AuthEntry() {
     const searchParams = useSearchParams();
@@ -126,7 +128,6 @@ function LoginComponent({ onToggle }: { onToggle: () => void }) {
     );
 }
 
-
 function SignupComponent({ onToggle }: { onToggle: () => void }) {
     const form = useForm({
         initialValues: {
@@ -136,12 +137,12 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
             password: "",
         },
         validate: {
-            email: (value) =>
-                /^\S+@\S+\.\S+$/.test(value) ? null : "Enter a valid email",
             name: (value) =>
                 value.trim().length > 0 ? null : "Enter a valid name",
             phone: (value) =>
                 /^[0-9]{10}$/.test(value) ? null : "Enter a valid 10-digit phone number",
+            email: (value) =>
+                /^\S+@\S+\.\S+$/.test(value) ? null : "Enter a valid email",
         },
     });
 
@@ -159,7 +160,7 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
             if (!result.success) {
                 throw new Error(result.error);
             }
-            
+
             return result;
         },
         onSuccess: () => {
@@ -169,9 +170,31 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (form.validate().hasErrors) return;
+        const validation = form.validate();
+        if (validation.hasErrors) {
+            const firstErrorField = Object.keys(validation.errors)[0];
+            const errorMessage = validation.errors[firstErrorField];
+            toast.error(`${firstErrorField}: ${errorMessage}`);
+            return;
+        }
         mutation.mutate(form.values);
     };
+
+    const checkEmailStatus = async (value: string) => {
+        const result = await checkEmailAvailability(value);
+
+        if (result.success) {
+            return result.data;
+        }
+        // Agar DB error aaye, toh safe side ke liye true return kar sakte hain
+        // ya false return karke "Server error" dikha sakte hain.
+        return true;
+    }
+
+    useEffect(() => {
+        if ((mutation.error as Error))
+            toast.error((mutation.error as Error).message);
+    }, [mutation.isError])
 
     return (
         <div className="w-full">
@@ -199,6 +222,18 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
                     form={form}
                     disabled={mutation.isPending}
                     required
+                    onBlurFunction={async (e) => {
+                        const emailValue = e.target.value;
+                        form.validateField("email");
+                        if (!form.errors.email && emailValue) {
+                            const isAvailable = await checkEmailStatus(emailValue);
+                            if (!isAvailable) {
+                                const msg = "Email already taken";
+                                form.setFieldError("email", msg);
+                                toast.error(msg);
+                            }
+                        }
+                    }}
                 />
                 <InputPasswordField
                     name="password"
@@ -209,16 +244,15 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
                     required
                 />
 
-                {mutation.isError && (
+                {/* {mutation.isError && (
                     <p className="text-red-600 text-sm bg-red-100 p-2 rounded">
                         {(mutation.error as Error).message}
                     </p>
-                )}
+                )} */}
 
                 <button
-                    className={`bg-blue-600 text-white p-2 rounded disabled:opacity-60 flex justify-center ${
-                        mutation.isPending ? "cursor-progress opacity-75" : "cursor-pointer"
-                    }`}
+                    className={`bg-blue-600 text-white p-2 rounded disabled:opacity-60 flex justify-center ${mutation.isPending ? "cursor-progress opacity-75" : "cursor-pointer"
+                        }`}
                     disabled={mutation.isPending}
                 >
                     {mutation.isPending ? "Creating account..." : "Sign Up"}
@@ -227,9 +261,9 @@ function SignupComponent({ onToggle }: { onToggle: () => void }) {
 
             <p className="mt-4 text-sm text-center text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}
-                <button 
-                    onClick={onToggle} 
-                    type="button" 
+                <button
+                    onClick={onToggle}
+                    type="button"
                     className="text-blue-600 underline"
                 >
                     Login here

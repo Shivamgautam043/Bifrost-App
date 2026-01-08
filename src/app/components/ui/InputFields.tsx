@@ -1,54 +1,15 @@
 "use client"
 import {
-    Combobox,
-    Input,
-    InputBase,
     Select,
-    TextInput,
-    useCombobox,
+    TextInput
 } from "@mantine/core";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { EyeIcon, EyeOffIcon } from "../svg";
 
-type InputFieldWithLabelProps = {
-    name: string
-    label?: string
-    placeholder?: string
-    className?: string
-    disabled?: boolean
-} & React.InputHTMLAttributes<HTMLInputElement>
-
-export function InputFieldWithLabel({
-    name,
-    label,
-    placeholder,
-    className = "",
-    disabled = false,
-    ...rest
-}: InputFieldWithLabelProps) {
-    return (
-        <div className="flex flex-col gap-1 w-full">
-            {label && (
-                <label htmlFor={name} className="text-sm font-medium">
-                    {label}
-                </label>
-            )}
-
-            <input
-                id={name}
-                name={name}
-                placeholder={placeholder}
-                disabled={disabled}
-                className={`border p-2 rounded ${className}`}
-                {...rest}
-            />
-        </div>
-    )
-}
 
 type InputTextFieldProps<T> = {
     name: keyof T;
-    label:string;
+    label: string;
     placeholder: string;
     form: {
         values: T;
@@ -56,8 +17,9 @@ type InputTextFieldProps<T> = {
         validateField: (field: keyof T) => void;
         setFieldValue: (field: keyof T, value: string) => void;
     };
-    disabled:boolean;
+    disabled: boolean;
     required?: boolean;
+    onBlurFunction?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
 export function InputTextField<T>({
@@ -67,6 +29,7 @@ export function InputTextField<T>({
     form,
     disabled,
     required,
+    onBlurFunction
 }: InputTextFieldProps<T>) {
     const value = form.values[name] as string;
     const error = form.errors[name];
@@ -77,10 +40,10 @@ export function InputTextField<T>({
     return (
         <div className="relative w-full">
             <div className="relative w-full">
-                    <div className={`absolute ${(showFloatingLabel || isFocused)?"-top-2.25":"top-1/10 opacity-0"} transition-all duration-300 px-1 left-4 z-30 text-[12px] text-black dark:text-white mobile-small-text bg-white dark:bg-[#121212] rounded`}>
-                        {label}
-                    </div>
-                {!isFocused && !showFloatingLabel &&  (
+                <div className={`absolute ${(showFloatingLabel || isFocused) ? "-top-2.25" : "top-1/10 opacity-0"} transition-all duration-300 px-1 left-4 z-30 text-[12px] text-black dark:text-white mobile-small-text bg-white dark:bg-[#121212] rounded`}>
+                    {label}
+                </div>
+                {!isFocused && !showFloatingLabel && (
                     <div
                         className={`absolute top-[50%] translate-y-[-50%] px-0.5 left-3 md:left-4 z-30 text-[14px] text-[#666] pointer-events-none body-regular`}
                     >
@@ -96,9 +59,12 @@ export function InputTextField<T>({
                     value={value}
                     disabled={disabled}
                     className={`border rounded w-full text-[#333333] dark:text-[#cbccd3] focus:outline-none focus:ring-0`}
-                    onBlur={() => {
+                    onBlur={(e) => {
                         form.validateField(name);
                         setIsFocused(false);
+                        if (onBlurFunction) {
+                            onBlurFunction(e);
+                        }
                     }}
                     onFocus={() => {
                         setIsFocused(true);
@@ -170,109 +136,108 @@ export function InputTextField<T>({
 // ------------------------------------------------------------------------------------------------------------
 
 type InputPasswordFieldProps<T> = {
-  name: keyof T;
-  label: string;
-  placeholder: string;
-  form: {
-    values: T;
-    errors: Partial<Record<keyof T, string>>;
-    validateField: (field: keyof T) => void;
-    setFieldValue: (field: keyof T, value: string) => void;
-  };
-  disabled: boolean;
-  required?: boolean;
+    name: keyof T;
+    label: string;
+    placeholder: string;
+    form: {
+        values: T;
+        errors: Partial<Record<keyof T, string>>;
+        validateField: (field: keyof T) => void;
+        setFieldValue: (field: keyof T, value: string) => void;
+    };
+    disabled: boolean;
+    required?: boolean;
 };
 
 export function InputPasswordField<T>({
-  name,
-  label,
-  placeholder,
-  form,
-  disabled,
-  required,
+    name,
+    label,
+    placeholder,
+    form,
+    disabled,
+    required,
 }: InputPasswordFieldProps<T>) {
-  const value = form.values[name] as string;
-  const error = form.errors[name];
+    const value = form.values[name] as string;
+    const error = form.errors[name];
 
-  const [isFocused, setIsFocused] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-  const showFloatingLabel =
-    value !== undefined && value !== null && value !== "";
+    const showFloatingLabel =
+        value !== undefined && value !== null && value !== "";
 
-  return (
-    <div className="relative w-full">
-      <div className="relative w-full">
-        {/* Floating label */}
-        <div
-          className={`absolute ${
-            showFloatingLabel || isFocused
-              ? "-top-2.25 opacity-100"
-              : "top-1/2 opacity-0"
-          } transition-all duration-300 px-1 left-4 z-30 text-[12px]
+    return (
+        <div className="relative w-full">
+            <div className="relative w-full">
+                {/* Floating label */}
+                <div
+                    className={`absolute ${showFloatingLabel || isFocused
+                            ? "-top-2.25 opacity-100"
+                            : "top-1/2 opacity-0"
+                        } transition-all duration-300 px-1 left-4 z-30 text-[12px]
           text-black dark:text-white bg-white dark:bg-[#121212] rounded`}
-        >
-          {label}
-        </div>
+                >
+                    {label}
+                </div>
 
-        {/* Placeholder */}
-        {!isFocused && !showFloatingLabel && (
-          <div
-            className="absolute top-1/2 -translate-y-1/2 px-0.5 left-3 md:left-4 z-30 text-[14px] text-[#666] pointer-events-none"
-          >
-            {placeholder}
-            {required && <span className="text-[#CB3332]">*</span>}
-          </div>
-        )}
+                {/* Placeholder */}
+                {!isFocused && !showFloatingLabel && (
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 px-0.5 left-3 md:left-4 z-30 text-[14px] text-[#666] pointer-events-none"
+                    >
+                        {placeholder}
+                        {required && <span className="text-[#CB3332]">*</span>}
+                    </div>
+                )}
 
-        {/* Input */}
-        <input
-          type={showPassword ? "text" : "password"}
-          name={String(name)}
-          value={value}
-          disabled={disabled}
-          className={`border rounded w-full pr-12 text-[#333333] dark:text-[#cbccd3] focus:outline-none focus:ring-0
+                {/* Input */}
+                <input
+                    type={showPassword ? "text" : "password"}
+                    name={String(name)}
+                    value={value}
+                    disabled={disabled}
+                    className={`border rounded w-full pr-12 text-[#333333] dark:text-[#cbccd3] focus:outline-none focus:ring-0
           `}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            form.validateField(name);
-            setIsFocused(false);
-          }}
-          style={{
-            borderRadius: "6px",
-            borderColor: error ? "#F07575" : "#666666",
-            padding: "16px",
-            paddingTop: "20px",
-            paddingBottom: "20px",
-            height: "2px",
-            fontSize: "16px",
-            lineHeight: "24px",
-            fontFamily: "sans-serif",
-            width: "100%",
-          }}
-          onChange={(e) => {
-            form.setFieldValue(name, e.target.value);
-          }}
-        />
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                        form.validateField(name);
+                        setIsFocused(false);
+                    }}
+                    style={{
+                        borderRadius: "6px",
+                        borderColor: error ? "#F07575" : "#666666",
+                        padding: "16px",
+                        paddingTop: "20px",
+                        paddingBottom: "20px",
+                        height: "2px",
+                        fontSize: "16px",
+                        lineHeight: "24px",
+                        fontFamily: "sans-serif",
+                        width: "100%",
+                    }}
+                    onChange={(e) => {
+                        form.setFieldValue(name, e.target.value);
+                    }}
+                />
 
-        {/* Eye toggle */}
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={() => setShowPassword((p) => !p)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-[#333] dark:hover:text-[#cbccd3]">
-          {showPassword ? < EyeOffIcon /> : <EyeIcon/>}
-        </button>
-      </div>
+                {/* Eye toggle */}
+                <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-[#333] dark:hover:text-[#cbccd3]">
+                    {showPassword ? < EyeOffIcon /> : <EyeIcon />}
+                </button>
+            </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mt-1 text-[#F07575] text-[12px]">
-          {error}
+            {/* Error */}
+            {error && (
+                <div className="mt-1 text-[#F07575] text-[12px]">
+                    {error}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------
