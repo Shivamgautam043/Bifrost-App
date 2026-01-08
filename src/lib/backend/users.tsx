@@ -1,3 +1,4 @@
+"use server";
 import { getPostgresDatabaseManager } from "../../../submodules/submodule-database-manager-postgres/postgresDatabaseManager.server";
 import { Uuid } from "../../../submodules/submodule-database-manager-postgres/typeDefinitions";
 import { Result, okResult, errResult } from "../../../submodules/submodule-database-manager-postgres/utilities/errorHandling";
