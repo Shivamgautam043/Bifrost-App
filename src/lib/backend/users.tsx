@@ -1,8 +1,37 @@
+"use server";
 import { getPostgresDatabaseManager } from "../../../submodules/submodule-database-manager-postgres/postgresDatabaseManager.server";
 import { Uuid } from "../../../submodules/submodule-database-manager-postgres/typeDefinitions";
 import { Result, okResult, errResult } from "../../../submodules/submodule-database-manager-postgres/utilities/errorHandling";
 import bcrypt from "bcrypt";
 import { generateUuid } from "../../../submodules/submodule-database-manager-postgres/utilities/utilities";
+
+
+export async function getUser(id: Uuid): Promise<Result<{ name: string; email: string; phone: string }>> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+    const query = `
+        SELECT full_name, email, phone 
+        FROM users 
+        WHERE id = $1 
+        LIMIT 1;
+    `;
+    const result = await db.execute(query, [id]);
+
+    if (!result.success) return result;
+    const rows = Array.isArray(result.data) ? result.data : result.data?.rows;
+    if (!rows || rows.length === 0) {
+        return errResult(new Error("User not found"));
+    }
+
+    const userRow = rows[0];
+    return okResult({
+        name: userRow.full_name,
+        email: userRow.email,
+        phone: userRow.phone,
+    });
+}
 
 export async function createUser({
     fullName,
@@ -86,4 +115,25 @@ export async function verifyUser({
         email: user.email,
         phone: user.phone,
     });
+}
+
+export async function checkEmailAvailability(email: string): Promise<Result<boolean>> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+
+    const query = `SELECT 1 FROM users WHERE email = $1 LIMIT 1;`;
+
+    const result = await db.execute(query, [email]);
+    if (!result.success) {
+        return result;
+    };
+
+    const rows = Array.isArray(result.data) ? result.data : result.data?.rows;
+
+    if (rows && rows.length > 0) {
+        return okResult(false);
+    }
+    return okResult(true);
 }
