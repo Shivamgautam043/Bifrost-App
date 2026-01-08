@@ -3,7 +3,7 @@ import {
     Select,
     TextInput
 } from "@mantine/core";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { EyeIcon, EyeOffIcon } from "../svg";
 
 
@@ -172,8 +172,8 @@ export function InputPasswordField<T>({
                 {/* Floating label */}
                 <div
                     className={`absolute ${showFloatingLabel || isFocused
-                            ? "-top-2.25 opacity-100"
-                            : "top-1/2 opacity-0"
+                        ? "-top-2.25 opacity-100"
+                        : "top-1/2 opacity-0"
                         } transition-all duration-300 px-1 left-4 z-30 text-[12px]
           text-black dark:text-white bg-white dark:bg-[#121212] rounded`}
                 >
@@ -909,10 +909,9 @@ export default function DateOfBirthField({
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------
-
 type InputOtpFieldProps = {
     otp: string;
-    setOtp: React.Dispatch<React.SetStateAction<string>>
+    setOtp: React.Dispatch<React.SetStateAction<string>>;
     otpId: string;
     resendOtp: () => void;
     errorInOtp: boolean;
@@ -923,22 +922,17 @@ export function InputOtpField({
     setOtp,
     otpId,
     resendOtp,
-    errorInOtp
+    errorInOtp,
 }: InputOtpFieldProps) {
-
-    const showFloatingLabel =
-        otp !== undefined && otp !== null && otp !== "";
-
     const [isFocused, setIsFocused] = useState(false);
-    const showResendOtp = true;
-
     const [resendTime, setResendTime] = useState(30);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        setResendTime(30);
         const interval = setInterval(() => {
-            setResendTime((prev) => prev - 1);
+            setResendTime((prev) => (prev > 0 ? prev - 1 : 0));
         }, 1000);
-
         return () => clearInterval(interval);
     }, [otpId]);
 
@@ -947,90 +941,78 @@ export function InputOtpField({
         setResendTime(30);
         resendOtp();
     };
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+        setOtp(value);
+    };
 
     return (
-        <div className="relative w-full">
+        <div className="w-full flex flex-col items-center gap-4">
             <div className="relative w-full">
-                {(
-                    <div className={`absolute transiton-all duration-200 ${(showFloatingLabel || isFocused) ? "top-0 opacity-100" : "top-2 opacity-0"} -translate-y-1/2 px-[2px] left-4 z-30 text-[12px] bg-white text-black mobile-small-text`}>
-                        OTP
-                    </div>
-                )}
+                <input
+                    ref={inputRef}
+                    value={otp}
+                    onChange={handleChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    maxLength={6}
+                    className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-text"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    disabled={false}
+                />
 
-                {!isFocused && !showFloatingLabel && (
-                    <div
-                        className={`absolute top-[50%] translate-y-[-50%] px-[2px] left-3 md:left-4 z-30 text-[12px] bg-white text-[#666] pointer-events-none body-regular`}
-                    >
-                        Enter OTP
-                        {(
-                            <span className="text-[#CB3332]"> *</span>
-                        )}
-                    </div>
-                )}
+                <div
+                    className={`flex justify-between gap-2 w-full ${errorInOtp ? "shake-animation" : ""}`}
+                    onClick={() => inputRef.current?.focus()}
+                >
+                    {Array.from({ length: 6 }).map((_, index) => {
+                        const digit = otp[index] || "";
+                        const isActive = isFocused && otp.length === index;
 
-
-                {showResendOtp && (
-                    <div
-                        className={`absolute top-1/2 -translate-y-1/2 right-4 z-30 text-[12px] bg-white text-[#666] small-text !font-medium`}
-                    >
-                        {resendTime > 0 ? (
-                            <div className="font-semibold!">Resend OTP in {resendTime}s</div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                className="font-semibold! text-[#B70229]"
+                        return (
+                            <div
+                                key={index}
+                                className={`
+                                    relative flex items-center justify-center w-10 h-12 md:w-12 md:h-14 border rounded-md text-lg font-semibold bg-white dark:bg-[#121212] transition-all duration-200
+                                `}
+                                style={{
+                                
+                                    borderColor: errorInOtp
+                                        ? "#F07575"
+                                        : isActive
+                                            ? "white"
+                                            : "#666666",
+                                    color: errorInOtp ? "#CB3332" : "white",
+                                    boxShadow: isActive ? "0 0 0 1px black" : "none"
+                                }}
                             >
-                                Resend OTP
-                            </button>
-                        )}
-                    </div>
-                )}
-                <div className={`${errorInOtp ? "shake-animation" : ""}`} style={{ borderColor: errorInOtp ? "#F07575" : "#666666" }}>
-                    <TextInput
-                        name={String(otp)}
-                        value={otp}
-                        styles={{
-                            input: {
-                                background: "#ffffff",
-                                borderRadius: "8px",
-                                borderColor: errorInOtp ? "#F07575" : "#666666",
-                                padding: "16px",
-                                paddingTop: "22px",
-                                paddingBottom: "22px",
-                                height: "24px",
-                                fontSize: "16px",
-                                color: errorInOtp ? "#CB3332" : "#333333",
-                                lineHeight: "24px",
-                                fontFamily: "Poppins, sans-serif",
-                            },
-                        }}
-                        onBlur={() => {
-                            // form.validateField(name);
-                            setIsFocused(false);
-                        }}
-                        onFocus={() => {
-                            setIsFocused(true);
-                        }}
-
-                        onChange={(e) => {
-                            let updated = e.target.value;
-                            updated = updated.replace(/\D/g, "");
-                            updated = updated.slice(0, 4);
-                            setOtp(updated);
-                        }}
-                        onPaste={(e) => {
-                            const pasted = e.clipboardData.getData("text");
-                            if (!/^\d{1,4}$/.test(pasted)) {
-                                e.preventDefault();
-                            }
-                        }}
-                    /></div>
+                                {digit}
+                                {isActive && !digit && (
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div className="w-[1.5px] h-6 bg-black dark:bg-white animate-pulse"/>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* {error && (
-                <div className="!text-[#F07575] text-[12px]">{error}</div>
-            )} */}
+            <div className="w-full flex justify-end text-[12px] small-text font-medium text-[#666]">
+                {resendTime > 0 ? (
+                    <div>Resend OTP in <span className="font-semibold text-black dark:text-white cursor-none">{resendTime}s</span></div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={handleResend}
+                        className="font-semibold text-[#666666] cursor-pointer hover:text-[#858383]"
+                    >
+                        Resend OTP
+                    </button>
+                )}
+            </div>
         </div>
     );
 }
