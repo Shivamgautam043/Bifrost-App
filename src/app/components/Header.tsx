@@ -13,8 +13,6 @@ export default function Header({
         const res = await fetch("/api/auth/logout", { method: "POST" });
         if (res.ok) window.location.href = "/login";
     }
-
-    // Close dropdown if clicked outside
     useEffect(() => {
         function handleClick(e: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -39,15 +37,15 @@ export default function Header({
                     <span className="font-semibold text-lg">Bifrost</span>
                 </div>
 
-            
-                {user && (
+
+                {user !== null && (
                     <div className="relative" ref={dropdownRef}>
                         {/* AVATAR BUTTON */}
                         <button
                             onClick={() => setOpen((prev) => !prev)}
                             className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-gray-900 border border-gray-300 dark:border-white/30 text-black dark:text-white font-semibold transition-all duration-200 hover:shadow-md hover:shadow-black/20 dark:hover:shadow-white/20"
                         >
-                            {user.name.charAt(0).toUpperCase()}
+                            {user.name ? user.name.charAt(0).toUpperCase() : ""}
                         </button>
 
                         {/* DROPDOWN */}
