@@ -137,3 +137,49 @@ export async function checkEmailAvailability(email: string): Promise<Result<bool
     }
     return okResult(true);
 }
+
+
+export async function updateUserProfile(
+    id: Uuid, 
+    data: { fullName?: string; phone?: string }
+): Promise<Result<boolean>> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+    const query = `
+        UPDATE users 
+        SET 
+            full_name = COALESCE($2, full_name),
+            phone = COALESCE($3, phone)
+        WHERE id = $1;
+    `;
+
+    const result = await db.execute(query, [id, data.fullName, data.phone]);
+    
+    if (!result.success) return result;
+    return okResult(true);
+}
+
+export async function updateUserPassword(
+    id: Uuid, 
+    newPassword: string
+): Promise<Result<boolean>> {
+    const postgresManagerResult = await getPostgresDatabaseManager(null);
+    if (!postgresManagerResult.success) return postgresManagerResult;
+
+    const db = postgresManagerResult.data;
+    
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    const query = `
+        UPDATE users 
+        SET password_hash = $2
+        WHERE id = $1;
+    `;
+
+    const result = await db.execute(query, [id, passwordHash]);
+
+    if (!result.success) return result;
+    return okResult(true);
+}
