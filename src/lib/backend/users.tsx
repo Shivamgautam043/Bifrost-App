@@ -138,7 +138,6 @@ export async function checkEmailAvailability(email: string): Promise<Result<bool
     return okResult(true);
 }
 
-
 export async function updateUserProfile(
     id: Uuid, 
     data: { fullName?: string; phone?: string }

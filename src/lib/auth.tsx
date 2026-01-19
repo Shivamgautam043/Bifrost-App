@@ -45,7 +45,7 @@ export async function loginAction(values: {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // Optional: 1 week
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   return { success: true };
