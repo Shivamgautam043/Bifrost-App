@@ -58,6 +58,8 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
+      sameSite: "none", //  required for cross-site
+      secure: true,
     });
 
     return response;

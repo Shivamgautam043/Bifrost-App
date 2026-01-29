@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
     response.cookies.set("token", token, {
       httpOnly: true,
       path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "none", //  required for cross-site
+      secure: true,
     });
 
     return response;
