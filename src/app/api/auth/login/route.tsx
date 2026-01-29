@@ -1,8 +1,17 @@
 import { verifyUser } from "@/lib/backend/users";
+import { corsHeaders } from "@/lib/cors";
 import { signJWT } from "@/lib/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders(req.headers.get("origin")),
+  });
+}
+
 export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
   try {
     let formData;
 
@@ -39,20 +48,26 @@ export async function POST(req: NextRequest) {
     const token = signJWT({
       id: user.id,
       email: user.email,
-      fullName: user.full_name,
+      name: user.full_name,
       phone: user.phone,
     });
 
-    const response = NextResponse.json({
-      success: true,
-      message: "Login successful",
-      token: token,
-      user: {
-        id: user.id,
-        name: user.full_name,
-        email: user.email,
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Login successful",
+        token: token,
+        user: {
+          id: user.id,
+          name: user.full_name,
+          email: user.email,
+          phone: user.phone,
+        },
       },
-    });
+      {
+        headers: corsHeaders(origin),
+      },
+    );
 
     response.cookies.set("token", token, {
       httpOnly: true,
